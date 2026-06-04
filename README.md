@@ -99,3 +99,7 @@ npm run build
 - [Hindsight repository](https://github.com/vectorize-io/hindsight)
 - [Hindsight documentation](https://hindsight.vectorize.io/)
 - [Vectorize agent memory](https://vectorize.io/what-is-agent-memory)
+
+## License
+
+MIT
