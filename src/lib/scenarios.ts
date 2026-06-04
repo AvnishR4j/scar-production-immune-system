@@ -81,6 +81,8 @@ export const fallbackEvidence: RecalledMemory[] = [
     context: "INC-104 root-cause analysis",
     entities: ["payment-api", "HTTP 429", "retry policy", "connection pool"],
     relevance: 0.97,
+    mentionedAt: new Date().toISOString(),
+    documentId: incidentRecord.id,
   },
   {
     id: "memory-inc-104-guardrail",
@@ -89,6 +91,8 @@ export const fallbackEvidence: RecalledMemory[] = [
     context: "Generalized production safety lesson",
     entities: ["deterministic retries", "jitter", "concurrency", "canary"],
     relevance: 0.94,
+    mentionedAt: new Date().toISOString(),
+    documentId: incidentRecord.id,
   },
 ];
 
@@ -98,4 +102,36 @@ export function getScenario(id: string) {
   }
 
   return null;
+}
+
+export function fallbackEvidenceFromIncident(incident: IncidentRecord): RecalledMemory[] {
+  const now = new Date().toISOString();
+  const lesson = [
+    incident.rootCause,
+    `Successful resolution: ${incident.resolution}`,
+    `Future guardrails: ${incident.futureGuardrails.join("; ")}`,
+  ].join(" ");
+
+  return [
+    {
+      id: `fallback-${incident.id.toLowerCase()}-experience`,
+      text: incident.rootCause,
+      type: "experience",
+      context: `${incident.id} engineer-authored root cause`,
+      entities: [incident.service, "root cause", "production incident"],
+      relevance: 0.97,
+      mentionedAt: now,
+      documentId: incident.id,
+    },
+    {
+      id: `fallback-${incident.id.toLowerCase()}-lesson`,
+      text: lesson,
+      type: "observation",
+      context: "Generalized engineer-authored safety lesson",
+      entities: [incident.service, "guardrail", "resolution"],
+      relevance: 0.94,
+      mentionedAt: now,
+      documentId: incident.id,
+    },
+  ];
 }

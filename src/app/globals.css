@@ -1019,6 +1019,430 @@ h1 span {
   font-size: 0.65rem;
 }
 
+.proof-lab {
+  margin-top: 14px;
+  border: 1px solid rgba(189, 168, 255, 0.35);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 90% 0%, rgba(189, 168, 255, 0.08), transparent 24%),
+    rgba(13, 23, 21, 0.96);
+  overflow: hidden;
+}
+
+.proof-lab-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+  padding: 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.proof-title {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.proof-title > div:first-child {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(189, 168, 255, 0.35);
+  border-radius: 9px;
+  background: rgba(189, 168, 255, 0.08);
+  color: var(--purple);
+}
+
+.proof-title span,
+.proof-card-label,
+.proof-bank span,
+.proof-verdict > span {
+  color: var(--purple);
+  font-size: 0.62rem;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.proof-title h2 {
+  margin: 5px 0 4px;
+  font-size: 1.12rem;
+}
+
+.proof-title p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.71rem;
+}
+
+.proof-mode {
+  min-width: 250px;
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.proof-mode span,
+.proof-mode strong {
+  display: block;
+}
+
+.proof-mode span {
+  font-size: 0.58rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+}
+
+.proof-mode strong {
+  margin-top: 3px;
+  font-size: 0.68rem;
+}
+
+.proof-mode.verified-hindsight {
+  border-color: rgba(125, 255, 178, 0.35);
+  background: rgba(37, 206, 123, 0.08);
+  color: var(--green);
+}
+
+.proof-mode.verification-pending {
+  border-color: rgba(189, 168, 255, 0.35);
+  background: rgba(189, 168, 255, 0.07);
+  color: var(--purple);
+}
+
+.proof-mode.simulated-fallback {
+  border-color: rgba(255, 200, 117, 0.35);
+  background: rgba(255, 200, 117, 0.07);
+  color: var(--amber);
+}
+
+.proof-warning {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 18px;
+  border-bottom: 1px solid rgba(255, 200, 117, 0.22);
+  background: rgba(255, 200, 117, 0.05);
+  color: #ffe0ae;
+  font-size: 0.68rem;
+}
+
+.proof-lab > .error-banner {
+  margin: 12px 18px 0;
+}
+
+.proof-input-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 14px 18px;
+}
+
+.proof-input-card {
+  display: grid;
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--panel-2);
+}
+
+.proof-card-label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.proof-input-card label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+
+.proof-input-card input,
+.proof-input-card textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  outline: none;
+  background: #08110f;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.69rem;
+  line-height: 1.48;
+}
+
+.proof-input-card input {
+  min-height: 34px;
+  padding: 0 9px;
+}
+
+.proof-input-card textarea {
+  padding: 8px 9px;
+}
+
+.proof-input-card input:focus,
+.proof-input-card textarea:focus {
+  border-color: rgba(125, 255, 178, 0.55);
+}
+
+.proof-input-card input:disabled,
+.proof-input-card textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.66;
+}
+
+.proof-input-card .mono-input {
+  font-family: "Geist Mono", monospace;
+}
+
+.proof-fingerprint {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  padding: 7px 9px;
+  border: 1px solid rgba(189, 168, 255, 0.22);
+  border-radius: 6px;
+  background: rgba(189, 168, 255, 0.05);
+  color: var(--purple);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+}
+
+.proof-fingerprint code {
+  color: var(--muted-bright);
+  font-size: 0.58rem;
+}
+
+.proof-bank {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 9px;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.proof-bank code {
+  overflow: hidden;
+  color: var(--muted-bright);
+  font-size: 0.58rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proof-bank button {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel-3);
+  color: var(--muted-bright);
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-weight: 750;
+}
+
+.proof-actions {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 0 18px 14px;
+}
+
+.proof-actions > svg {
+  color: var(--border-bright);
+}
+
+.proof-actions button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 9px;
+  align-items: center;
+  min-height: 54px;
+  padding: 9px;
+  border: 1px solid rgba(189, 168, 255, 0.28);
+  border-radius: 8px;
+  background: rgba(189, 168, 255, 0.06);
+  color: var(--purple);
+  cursor: pointer;
+  text-align: left;
+}
+
+.proof-actions button:disabled {
+  cursor: not-allowed;
+  filter: saturate(0.2);
+  opacity: 0.48;
+}
+
+.proof-actions button > span {
+  width: 29px;
+  height: 29px;
+  display: grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-family: "Geist Mono", monospace;
+  font-size: 0.58rem;
+}
+
+.proof-actions strong,
+.proof-actions small {
+  display: block;
+}
+
+.proof-actions strong {
+  font-size: 0.7rem;
+}
+
+.proof-actions small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.59rem;
+}
+
+.proof-results {
+  display: grid;
+  grid-template-columns: 1fr minmax(240px, 0.7fr) 1fr;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.proof-verdict,
+.proof-delta {
+  min-height: 92px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.proof-verdict strong {
+  margin: 5px 0;
+  font-size: 1.15rem;
+  letter-spacing: 0.08em;
+}
+
+.proof-verdict small,
+.proof-delta span {
+  color: var(--muted);
+  font-size: 0.62rem;
+}
+
+.proof-verdict.approve {
+  border-color: rgba(125, 255, 178, 0.3);
+  color: var(--green);
+}
+
+.proof-verdict.block {
+  border-color: rgba(255, 111, 104, 0.35);
+  color: var(--red);
+}
+
+.proof-delta {
+  color: var(--muted-bright);
+}
+
+.proof-delta.changed {
+  border-color: rgba(189, 168, 255, 0.38);
+  background: rgba(189, 168, 255, 0.08);
+  color: var(--purple);
+}
+
+.proof-delta strong {
+  margin: 7px 0 5px;
+  font-size: 0.69rem;
+}
+
+.proof-delta code {
+  color: var(--purple);
+  font-size: 0.55rem;
+}
+
+.proof-evidence {
+  padding: 14px 18px 18px;
+}
+
+.proof-evidence-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 9px;
+  margin-top: 9px;
+}
+
+.proof-evidence-grid article {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+
+.proof-evidence-grid article > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.proof-evidence-grid span {
+  color: var(--purple);
+  font-size: 0.57rem;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.proof-evidence-grid strong {
+  color: var(--green);
+  font-family: "Geist Mono", monospace;
+  font-size: 0.58rem;
+}
+
+.proof-evidence-grid p {
+  margin: 8px 0;
+  color: var(--muted-bright);
+  font-size: 0.66rem;
+  line-height: 1.45;
+}
+
+.proof-evidence-grid code,
+.proof-evidence-grid small {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.55rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proof-evidence-grid small {
+  margin-top: 4px;
+}
+
+.proof-empty {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+}
+
 footer {
   display: flex;
   justify-content: space-between;
@@ -1118,6 +1542,33 @@ footer strong {
 
   .memory-panel {
     grid-column: auto;
+  }
+
+  .proof-lab-header,
+  .proof-input-grid,
+  .proof-results,
+  .proof-evidence-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .proof-lab-header {
+    display: grid;
+  }
+
+  .proof-mode {
+    min-width: 0;
+  }
+
+  .proof-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .proof-actions > svg {
+    display: none;
+  }
+
+  .proof-bank {
+    grid-template-columns: 1fr;
   }
 
   .panel {

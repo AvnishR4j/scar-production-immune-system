@@ -3,7 +3,7 @@ import { analyzeSchema, apiError } from "@/lib/api";
 import { analyzeWithGroq, groqConfigured } from "@/lib/groq";
 import { hindsightConfigured, recallRiskMemories } from "@/lib/hindsight";
 import { fallbackMemoriesForDemo } from "@/lib/risk-engine";
-import { getScenario } from "@/lib/scenarios";
+import { fallbackEvidenceFromIncident, getScenario } from "@/lib/scenarios";
 import {
   enforceRateLimit,
   enforceSameOrigin,
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     return apiError("Invalid or expired demo session.", 403);
   }
 
-  const scenario = getScenario(parsed.data.scenarioId);
+  const scenario = parsed.data.customScenario ?? getScenario(parsed.data.scenarioId ?? "");
   if (!scenario) return apiError("Unknown scenario.", 404);
 
   let memoryMode: "hindsight-cloud" | "demo-fallback" = hindsightConfigured()
@@ -43,7 +43,9 @@ export async function POST(request: NextRequest) {
   }
 
   if (memoryMode === "demo-fallback") {
-    memories = fallbackMemoriesForDemo(parsed.data.memoryLearned);
+    memories = parsed.data.memoryLearned && parsed.data.fallbackIncident
+      ? fallbackEvidenceFromIncident(parsed.data.fallbackIncident)
+      : fallbackMemoriesForDemo(parsed.data.memoryLearned);
   }
 
   const analysis = await analyzeWithGroq(scenario, memories);

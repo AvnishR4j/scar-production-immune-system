@@ -13,6 +13,20 @@ The guided demo proves a complete Hindsight learning loop:
 3. **Hindsight learns:** SCAR retains the incident and reflects on the reusable production-safety lesson.
 4. **Recurrence blocked:** SCAR identifies the same hidden failure mechanism in an unrelated notification service and blocks deployment.
 
+## Interactive Judge Proof Lab
+
+The Proof Lab makes the learning claim falsifiable instead of relying only on the guided story:
+
+1. A judge writes an unseen deployment challenge and sees its locked input fingerprint.
+2. SCAR analyzes it against a newly created empty memory bank and must cite zero evidence.
+3. The judge writes the root cause and successful resolution in their own words.
+4. SCAR retains that correction, then re-analyzes the exact same locked challenge.
+5. The interface exposes the before/after verdicts, raw recalled memory IDs, document IDs, timestamps, and evidence count.
+
+The status badge only changes to **Verified Memory** after all retain and recall operations complete through Hindsight Cloud. Without Hindsight credentials, the app explicitly labels the result **Simulation Mode** and does not present it as proof of persistent learning.
+
+SCAR also rejects false learning: retaining an unrelated judge-authored lesson does not block the deployment. The Proof Lab learns only from the visible root cause and resolution fields, a verdict can change only when recalled evidence has causal overlap with the proposed change, and every model-generated `BLOCK` decision must cite an ID that was actually returned by memory recall.
+
 ## Why Memory Changes the Decision
 
 Traditional postmortems preserve what happened as documents. SCAR uses Hindsight to make those lessons change future decisions.
@@ -38,7 +52,7 @@ The decision changes because of recalled organizational evidence, not because th
 
 ```mermaid
 flowchart LR
-  UI[Guided Judge Dashboard] --> API[SCAR Analysis API]
+  UI[Guided Dashboard + Judge Proof Lab] --> API[SCAR Analysis API]
   API --> HR[Hindsight Recall]
   API --> G[Groq Risk Reasoning]
   API --> D[Deterministic Safety Engine]
@@ -63,7 +77,7 @@ The interface always displays the active integration mode:
 - **Hindsight Cloud + Groq:** real persistent-memory operations and model-based risk reasoning when credentials are configured.
 - **Deterministic demo mode:** preserves the complete guided flow when external providers are unavailable and is clearly labeled in the dashboard.
 
-The public deployment can be evaluated without credentials. For a real Hindsight-backed run, configure the server-side environment variables below and redeploy.
+The public deployment can be evaluated without credentials, but it will explicitly show **Simulation Mode**. For a verified Hindsight-backed run, configure the server-side environment variables below and redeploy.
 
 ## Run Locally
 
@@ -112,6 +126,8 @@ openssl rand -hex 32
 4. Click **Teach SCAR the resolution** and show Hindsight retain, reflect, the generalized mental model, and extracted entities.
 5. Click **Analyze unrelated deployment** to show SCAR recalling INC-104 and blocking the notification-worker change.
 6. Emphasize that SCAR learned the causal mechanism, not a service name or keyword.
+7. In **Interactive Judge Challenge**, create a new empty proof bank and let a judge edit the challenge and correction.
+8. Run the three proof actions and show that the locked fingerprint is identical while the verdict changes only after raw Hindsight evidence is recalled.
 
 ## API Contracts
 
@@ -143,7 +159,7 @@ npm audit
 - Hindsight URLs must use HTTPS outside local development.
 - The dashboard labels fallback integration states when credentials or providers are unavailable.
 
-Current verification: `8` automated tests passing and `0` dependency vulnerabilities reported by `npm audit`.
+Current verification: `14` automated tests passing and `0` dependency vulnerabilities reported by `npm audit`.
 
 ## Official Hindsight Resources
 

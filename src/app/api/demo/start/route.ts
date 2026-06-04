@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   const crossOrigin = enforceSameOrigin(request);
   if (crossOrigin) return crossOrigin;
 
-  const limited = enforceRateLimit(request, "demo-start", 8);
+  const limited = enforceRateLimit(request, "demo-start", 20);
   if (limited) return limited;
 
   const bankId = `scar-demo-${crypto.randomUUID()}`;

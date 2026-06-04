@@ -1,10 +1,10 @@
 import { HindsightClient } from "@vectorize-io/hindsight-client";
 import {
-  fallbackEvidence,
+  fallbackEvidenceFromIncident,
   generalizedLesson,
   incidentRecord,
 } from "@/lib/scenarios";
-import type { RecalledMemory, RetainResult } from "@/lib/types";
+import type { IncidentRecord, RecalledMemory, RetainResult } from "@/lib/types";
 
 const HINDSIGHT_TIMEOUT_MS = 25_000;
 
@@ -85,40 +85,46 @@ export async function recallRiskMemories(
     context: truncate(result.context ?? "Hindsight recall", 240),
     entities: (result.entities ?? []).slice(0, 8).map((entity) => truncate(entity, 100)),
     relevance: Math.max(0.72, 0.98 - index * 0.05),
+    mentionedAt: result.mentioned_at ?? undefined,
+    documentId: result.document_id ?? undefined,
   }));
 }
 
-export async function retainIncident(bankId: string): Promise<RetainResult> {
+export async function retainIncident(
+  bankId: string,
+  incident: IncidentRecord = incidentRecord,
+): Promise<RetainResult> {
   const client = getClient();
   if (!client) {
+    const evidence = fallbackEvidenceFromIncident(incident);
     return {
       retained: true,
       memoryMode: "demo-fallback",
-      itemsCount: fallbackEvidence.length,
-      generalizedLesson,
-      evidence: fallbackEvidence,
+      itemsCount: evidence.length,
+      generalizedLesson: evidence[1].text,
+      evidence,
     };
   }
 
   const content = [
-    `Incident ${incidentRecord.id}: ${incidentRecord.title}`,
-    `Service: ${incidentRecord.service}`,
-    `Incorrect diagnosis: ${incidentRecord.incorrectDiagnosis}`,
-    `Root cause: ${incidentRecord.rootCause}`,
-    `Resolution: ${incidentRecord.resolution}`,
-    `Causal chain: ${incidentRecord.causalChain.join(" -> ")}`,
-    `Future guardrails: ${incidentRecord.futureGuardrails.join("; ")}`,
+    `Incident ${incident.id}: ${incident.title}`,
+    `Service: ${incident.service}`,
+    `Incorrect diagnosis: ${incident.incorrectDiagnosis}`,
+    `Root cause: ${incident.rootCause}`,
+    `Resolution: ${incident.resolution}`,
+    `Causal chain: ${incident.causalChain.join(" -> ")}`,
+    `Future guardrails: ${incident.futureGuardrails.join("; ")}`,
   ].join("\n");
 
   const retainResponse = await client.retain(bankId, content, {
     context: "Engineer-confirmed production incident and corrective event",
-    documentId: incidentRecord.id,
-    tags: ["incident", "retry-policy", "production-safety"],
+    documentId: incident.id,
+    tags: ["incident", "production-safety", "engineer-correction"],
     entities: [
-      { text: "payment-api", type: "service" },
-      { text: "HTTP 429", type: "failure-signal" },
-      { text: "fixed-interval retry", type: "failure-mechanism" },
-      { text: "connection pool", type: "resource" },
+      { text: incident.service, type: "service" },
+      { text: incident.id, type: "incident" },
+      { text: "root cause", type: "knowledge-type" },
+      { text: "deployment guardrail", type: "knowledge-type" },
     ],
     async: false,
     signal: signal(),
@@ -126,7 +132,7 @@ export async function retainIncident(bankId: string): Promise<RetainResult> {
 
   const reflection = await client.reflect(
     bankId,
-    "Generalize the reusable production safety lesson from INC-104 so it can prevent a similar failure in a different service.",
+    `Generalize the reusable production safety lesson from ${incident.id} so it can prevent a similar failure in a different service.`,
     {
       budget: "mid",
       factTypes: ["world", "experience", "observation"],
@@ -136,7 +142,7 @@ export async function retainIncident(bankId: string): Promise<RetainResult> {
 
   const evidence = await recallRiskMemories(
     bankId,
-    "What failure mechanism and deployment guardrails were learned from deterministic retries and high concurrency?",
+    `What root cause, successful resolution, and guardrails were learned from ${incident.id}?`,
   );
 
   return {
@@ -152,12 +158,13 @@ export function hindsightConfigured() {
   return isConfigured();
 }
 
-export function fallbackRetainResult(): RetainResult {
+export function fallbackRetainResult(incident: IncidentRecord = incidentRecord): RetainResult {
+  const evidence = fallbackEvidenceFromIncident(incident);
   return {
     retained: true,
     memoryMode: "demo-fallback",
-    itemsCount: fallbackEvidence.length,
-    generalizedLesson,
-    evidence: fallbackEvidence,
+    itemsCount: evidence.length,
+    generalizedLesson: evidence[1].text,
+    evidence,
   };
 }

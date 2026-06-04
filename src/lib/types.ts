@@ -8,7 +8,7 @@ export type DiffLine = {
 };
 
 export type ChangeScenario = {
-  id: "payment-retry-incident" | "notification-retry-recurrence";
+  id: string;
   sequence: number;
   service: string;
   title: string;
@@ -27,6 +27,8 @@ export type RecalledMemory = {
   context: string;
   entities: string[];
   relevance: number;
+  mentionedAt?: string;
+  documentId?: string;
 };
 
 export type RiskAnalysis = {

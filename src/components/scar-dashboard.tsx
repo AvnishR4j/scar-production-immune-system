@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { incidentRecord, scenarios } from "@/lib/scenarios";
+import { ProofLab } from "@/components/proof-lab";
 import type {
   ChangeScenario,
   DemoPhase,
@@ -187,6 +188,7 @@ export function ScarDashboard() {
           body: JSON.stringify({
             bankId: session.bankId,
             sessionToken: session.sessionToken,
+            incident: incidentRecord,
           }),
         });
         if (!response.ok) throw new Error("Hindsight could not retain the incident.");
@@ -504,7 +506,7 @@ export function ScarDashboard() {
                 <article className="memory-item" key={`${memory.id}-${index}`}>
                   <div className="memory-item-top">
                     <span className={`memory-type ${memory.type}`}>{memory.type}</span>
-                    <strong>{Math.round(memory.relevance * 100)}% relevance</strong>
+                    <strong>recall #{index + 1}</strong>
                   </div>
                   <p>{memory.text}</p>
                   <div className="entity-list">
@@ -525,6 +527,8 @@ export function ScarDashboard() {
       </section>
 
       {outage && !retainResult ? <OutageStrip outage={outage} /> : null}
+
+      <ProofLab />
 
       <footer>
         <div>

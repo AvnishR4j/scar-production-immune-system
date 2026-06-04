@@ -2,7 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import type { ZodType } from "zod";
 
-const MAX_JSON_BYTES = 4_096;
+const MAX_JSON_BYTES = 16_384;
 const SESSION_TTL_MS = 2 * 60 * 60 * 1_000;
 const RATE_WINDOW_MS = 10 * 60 * 1_000;
 
