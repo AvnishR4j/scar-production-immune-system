@@ -4,6 +4,8 @@ SCAR is a deployment-risk agent that turns production incidents, failed fixes, a
 
 **Live demo:** https://scar-production-immune-system.vercel.app
 
+**Repository:** https://github.com/AvnishR4j/scar-production-immune-system
+
 The guided demo proves a complete Hindsight learning loop:
 
 1. **Cold start:** SCAR approves a dangerous payment retry-policy change because it has no relevant organizational memory.
@@ -18,6 +20,19 @@ Traditional postmortems preserve what happened as documents. SCAR uses Hindsight
 The first and second proposed changes affect different services and dependencies. Their keywords barely overlap, but their causal mechanism is the same: deterministic retries synchronize workers and exhaust a constrained downstream resource.
 
 SCAR recalls that causal lesson and transfers it across domains.
+
+## Hindsight Memory Loop
+
+When Hindsight Cloud is configured, SCAR uses a separate, isolated memory bank for each demo session:
+
+| Stage | Hindsight operation | Result |
+| --- | --- | --- |
+| Cold start | `recall` | No relevant incident evidence exists, so SCAR approves the change |
+| Corrective event | `retain` | Stores the incorrect diagnosis, root cause, resolution, causal chain, and guardrails |
+| Learning | `reflect` | Generalizes the payment incident into a reusable retry-synchronization lesson |
+| Future deployment | `recall` | Retrieves the lesson for a different service and changes the verdict to `BLOCK` |
+
+The decision changes because of recalled organizational evidence, not because the second change contains the same service names or incident keywords.
 
 ## Architecture
 
@@ -41,6 +56,15 @@ flowchart LR
 - **Deterministic safety engine:** reliable fallback for development and demo recovery
 - **Deployment simulator:** controlled outage narrative; no production infrastructure is modified
 
+## Integration Modes
+
+The interface always displays the active integration mode:
+
+- **Hindsight Cloud + Groq:** real persistent-memory operations and model-based risk reasoning when credentials are configured.
+- **Deterministic demo mode:** preserves the complete guided flow when external providers are unavailable and is clearly labeled in the dashboard.
+
+The public deployment can be evaluated without credentials. For a real Hindsight-backed run, configure the server-side environment variables below and redeploy.
+
 ## Run Locally
 
 ```bash
@@ -59,6 +83,25 @@ HINDSIGHT_API_KEY=your-key
 GROQ_API_KEY=your-key
 GROQ_MODEL=openai/gpt-oss-120b
 SCAR_SESSION_SECRET=a-random-secret-of-at-least-32-bytes
+```
+
+`HINDSIGHT_BASE_URL` must use HTTPS in production. HTTP is accepted only for `localhost` and `127.0.0.1`.
+
+## Deploy to Vercel
+
+```bash
+vercel
+vercel env add HINDSIGHT_BASE_URL production
+vercel env add HINDSIGHT_API_KEY production
+vercel env add GROQ_API_KEY production
+vercel env add SCAR_SESSION_SECRET production
+vercel --prod
+```
+
+Generate the signing secret with:
+
+```bash
+openssl rand -hex 32
 ```
 
 ## Demo Script
@@ -85,6 +128,7 @@ SCAR_SESSION_SECRET=a-random-secret-of-at-least-32-bytes
 npm test
 npm run lint
 npm run build
+npm audit
 ```
 
 ## Safety and Transparency
@@ -94,8 +138,12 @@ npm run build
 - API keys remain server-side.
 - Every public visitor receives an isolated memory bank.
 - Costly API operations require an expiring server-signed demo session.
-- API routes enforce body-size limits, response bounds, and best-effort per-IP throttling.
+- API routes enforce same-origin requests, body-size limits, response bounds, and best-effort per-IP throttling.
+- Production responses include CSP, HSTS, frame, MIME-sniffing, referrer, and permissions protections.
+- Hindsight URLs must use HTTPS outside local development.
 - The dashboard labels fallback integration states when credentials or providers are unavailable.
+
+Current verification: `8` automated tests passing and `0` dependency vulnerabilities reported by `npm audit`.
 
 ## Official Hindsight Resources
 
