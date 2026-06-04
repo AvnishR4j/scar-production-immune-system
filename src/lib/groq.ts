@@ -1,0 +1,66 @@
+import { z } from "zod";
+import { buildRiskPrompt, deterministicAnalysis } from "@/lib/risk-engine";
+import type { ChangeScenario, RecalledMemory, RiskAnalysis } from "@/lib/types";
+
+const groqAnalysisSchema = z.object({
+  verdict: z.enum(["APPROVE", "BLOCK"]),
+  riskScore: z.number().min(0).max(100),
+  confidence: z.number().min(0).max(100),
+  headline: z.string().min(1),
+  explanation: z.string().min(1),
+  causalChain: z.array(z.string()).min(1),
+  recommendations: z.array(z.string()).min(1),
+  citedMemoryIds: z.array(z.string()),
+});
+
+export async function analyzeWithGroq(
+  scenario: ChangeScenario,
+  memories: RecalledMemory[],
+): Promise<RiskAnalysis> {
+  const fallback = deterministicAnalysis(scenario, memories);
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) return fallback;
+
+  try {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: process.env.GROQ_MODEL ?? "openai/gpt-oss-120b",
+        temperature: 0.1,
+        response_format: { type: "json_object" },
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are SCAR, a skeptical production deployment-risk agent. Return only valid JSON. Do not invent incident evidence.",
+          },
+          { role: "user", content: buildRiskPrompt(scenario, memories) },
+        ],
+      }),
+      signal: AbortSignal.timeout(25_000),
+    });
+
+    if (!response.ok) return fallback;
+
+    const payload = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const content = payload.choices?.[0]?.message?.content;
+    if (!content) return fallback;
+
+    return {
+      ...groqAnalysisSchema.parse(JSON.parse(content)),
+      analysisMode: "groq",
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+export function groqConfigured() {
+  return Boolean(process.env.GROQ_API_KEY);
+}
