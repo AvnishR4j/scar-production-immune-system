@@ -141,7 +141,12 @@ export function ScarDashboard() {
     const response = await fetch("/api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ bankId: session.bankId, scenarioId, memoryLearned }),
+      body: JSON.stringify({
+        bankId: session.bankId,
+        sessionToken: session.sessionToken,
+        scenarioId,
+        memoryLearned,
+      }),
     });
 
     if (!response.ok) throw new Error("SCAR could not analyze this deployment.");
@@ -163,7 +168,11 @@ export function ScarDashboard() {
         const response = await fetch("/api/deploy", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ scenarioId: "payment-retry-incident" }),
+          body: JSON.stringify({
+            bankId: session.bankId,
+            sessionToken: session.sessionToken,
+            scenarioId: "payment-retry-incident",
+          }),
         });
         if (!response.ok) throw new Error("The deployment simulation failed.");
         setOutage((await response.json()) as OutageResponse);
@@ -175,7 +184,10 @@ export function ScarDashboard() {
         const response = await fetch("/api/incident/retain", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ bankId: session.bankId }),
+          body: JSON.stringify({
+            bankId: session.bankId,
+            sessionToken: session.sessionToken,
+          }),
         });
         if (!response.ok) throw new Error("Hindsight could not retain the incident.");
         setRetainResult((await response.json()) as RetainResult);

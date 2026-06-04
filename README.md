@@ -58,6 +58,7 @@ HINDSIGHT_BASE_URL=https://your-hindsight-api
 HINDSIGHT_API_KEY=your-key
 GROQ_API_KEY=your-key
 GROQ_MODEL=openai/gpt-oss-120b
+SCAR_SESSION_SECRET=a-random-secret-of-at-least-32-bytes
 ```
 
 ## Demo Script
@@ -92,6 +93,8 @@ npm run build
 - Hindsight retain, recall, and reflect operations are real when cloud credentials are configured.
 - API keys remain server-side.
 - Every public visitor receives an isolated memory bank.
+- Costly API operations require an expiring server-signed demo session.
+- API routes enforce body-size limits, response bounds, and best-effort per-IP throttling.
 - The dashboard labels fallback integration states when credentials or providers are unavailable.
 
 ## Official Hindsight Resources

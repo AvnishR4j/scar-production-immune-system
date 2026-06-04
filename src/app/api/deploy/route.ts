@@ -1,14 +1,33 @@
-import { NextRequest, NextResponse } from "next/server";
-import { apiError } from "@/lib/api";
+import { NextRequest } from "next/server";
+import { apiError, sessionSchema } from "@/lib/api";
 import { incidentRecord } from "@/lib/scenarios";
+import {
+  enforceRateLimit,
+  enforceSameOrigin,
+  noStoreJson,
+  parseJsonBody,
+  verifySessionToken,
+} from "@/lib/security";
+import { z } from "zod";
+
+const deploySchema = sessionSchema.extend({
+  scenarioId: z.literal("payment-retry-incident"),
+});
 
 export async function POST(request: NextRequest) {
-  const body = (await request.json()) as { scenarioId?: string };
-  if (body.scenarioId !== "payment-retry-incident") {
-    return apiError("Only the cold-start deployment can be simulated.");
+  const crossOrigin = enforceSameOrigin(request);
+  if (crossOrigin) return crossOrigin;
+
+  const limited = enforceRateLimit(request, "deploy", 30);
+  if (limited) return limited;
+
+  const parsed = await parseJsonBody(request, deploySchema);
+  if ("response" in parsed) return parsed.response;
+  if (!verifySessionToken(parsed.data.bankId, parsed.data.sessionToken)) {
+    return apiError("Invalid or expired demo session.", 403);
   }
 
-  return NextResponse.json({
+  return noStoreJson({
     incident: incidentRecord,
     status: "OUTAGE",
     affectedUsers: "38,412",

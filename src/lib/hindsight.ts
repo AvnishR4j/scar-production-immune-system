@@ -8,8 +8,23 @@ import type { RecalledMemory, RetainResult } from "@/lib/types";
 
 const HINDSIGHT_TIMEOUT_MS = 25_000;
 
+function truncate(value: string, maxLength: number) {
+  return value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
+}
+
 function isConfigured() {
-  return Boolean(process.env.HINDSIGHT_BASE_URL && process.env.HINDSIGHT_API_KEY);
+  const baseUrl = process.env.HINDSIGHT_BASE_URL;
+  if (!baseUrl || !process.env.HINDSIGHT_API_KEY) return false;
+
+  try {
+    const url = new URL(baseUrl);
+    return (
+      url.protocol === "https:" ||
+      (url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname))
+    );
+  } catch {
+    return false;
+  }
 }
 
 function getClient() {
@@ -64,11 +79,11 @@ export async function recallRiskMemories(
   });
 
   return response.results.slice(0, 6).map((result, index) => ({
-    id: result.id,
-    text: result.text,
+    id: truncate(result.id, 180),
+    text: truncate(result.text, 1_200),
     type: result.type ?? "memory",
-    context: result.context ?? "Hindsight recall",
-    entities: result.entities ?? [],
+    context: truncate(result.context ?? "Hindsight recall", 240),
+    entities: (result.entities ?? []).slice(0, 8).map((entity) => truncate(entity, 100)),
     relevance: Math.max(0.72, 0.98 - index * 0.05),
   }));
 }
@@ -128,7 +143,7 @@ export async function retainIncident(bankId: string): Promise<RetainResult> {
     retained: retainResponse.success,
     memoryMode: "hindsight-cloud",
     itemsCount: retainResponse.items_count,
-    generalizedLesson: reflection.text || generalizedLesson,
+    generalizedLesson: truncate(reflection.text || generalizedLesson, 2_500),
     evidence,
   };
 }

@@ -1,16 +1,32 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { analyzeSchema, apiError } from "@/lib/api";
 import { analyzeWithGroq, groqConfigured } from "@/lib/groq";
 import { hindsightConfigured, recallRiskMemories } from "@/lib/hindsight";
 import { fallbackMemoriesForDemo } from "@/lib/risk-engine";
 import { getScenario } from "@/lib/scenarios";
+import {
+  enforceRateLimit,
+  enforceSameOrigin,
+  noStoreJson,
+  parseJsonBody,
+  verifySessionToken,
+} from "@/lib/security";
 import type { RecalledMemory } from "@/lib/types";
 
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
-  const parsed = analyzeSchema.safeParse(await request.json());
-  if (!parsed.success) return apiError("Invalid analysis request.");
+  const crossOrigin = enforceSameOrigin(request);
+  if (crossOrigin) return crossOrigin;
+
+  const limited = enforceRateLimit(request, "analyze", 30);
+  if (limited) return limited;
+
+  const parsed = await parseJsonBody(request, analyzeSchema);
+  if ("response" in parsed) return parsed.response;
+  if (!verifySessionToken(parsed.data.bankId, parsed.data.sessionToken)) {
+    return apiError("Invalid or expired demo session.", 403);
+  }
 
   const scenario = getScenario(parsed.data.scenarioId);
   if (!scenario) return apiError("Unknown scenario.", 404);
@@ -32,7 +48,7 @@ export async function POST(request: NextRequest) {
 
   const analysis = await analyzeWithGroq(scenario, memories);
 
-  return NextResponse.json({
+  return noStoreJson({
     scenario,
     analysis,
     memories,

@@ -6,11 +6,11 @@ const groqAnalysisSchema = z.object({
   verdict: z.enum(["APPROVE", "BLOCK"]),
   riskScore: z.number().min(0).max(100),
   confidence: z.number().min(0).max(100),
-  headline: z.string().min(1),
-  explanation: z.string().min(1),
-  causalChain: z.array(z.string()).min(1),
-  recommendations: z.array(z.string()).min(1),
-  citedMemoryIds: z.array(z.string()),
+  headline: z.string().min(1).max(160),
+  explanation: z.string().min(1).max(1_200),
+  causalChain: z.array(z.string().min(1).max(220)).min(1).max(8),
+  recommendations: z.array(z.string().min(1).max(220)).min(1).max(8),
+  citedMemoryIds: z.array(z.string().min(1).max(180)).max(8),
 });
 
 export async function analyzeWithGroq(
@@ -31,6 +31,7 @@ export async function analyzeWithGroq(
       body: JSON.stringify({
         model: process.env.GROQ_MODEL ?? "openai/gpt-oss-120b",
         temperature: 0.1,
+        max_completion_tokens: 1_200,
         response_format: { type: "json_object" },
         messages: [
           {

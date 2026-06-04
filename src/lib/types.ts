@@ -62,6 +62,7 @@ export type RetainResult = {
 
 export type DemoSession = {
   bankId: string;
+  sessionToken: string;
   memoryMode: "hindsight-cloud" | "demo-fallback";
   startedAt: string;
 };
