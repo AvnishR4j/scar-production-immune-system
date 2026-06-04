@@ -4,28 +4,88 @@ import type { ChangeScenario, RecalledMemory, RiskAnalysis } from "@/lib/types";
 const similarityStopWords = new Set([
   "against",
   "because",
+  "cause",
   "change",
+  "confirmed",
   "deployment",
   "different",
   "does",
+  "engineer",
   "failure",
   "from",
+  "guardrail",
   "incident",
   "into",
+  "judge",
+  "known",
+  "learned",
   "lesson",
   "memory",
   "previous",
   "production",
   "proposed",
+  "provided",
   "recreate",
   "resolution",
   "root",
+  "rollout",
   "service",
+  "successful",
+  "system",
+  "team",
   "this",
   "what",
   "when",
   "with",
 ]);
+
+const causalSignalFamilies: Record<string, string[]> = {
+  "retry synchronization": [
+    "backoff",
+    "fixed interval",
+    "fixed retry",
+    "periodic attempt",
+    "retry",
+    "synchron",
+    "thundering herd",
+  ],
+  "resource exhaustion": [
+    "capacity",
+    "connection",
+    "concurrency",
+    "exhaust",
+    "overwhelm",
+    "pool",
+    "saturat",
+    "shared resource",
+  ],
+  "dependency throttling": [
+    "429",
+    "rate limit",
+    "rate-limit",
+    "throttle",
+  ],
+  "environment blind spot": [
+    "mock",
+    "staging",
+    "test environment",
+  ],
+  "safe retry guardrail": [
+    "canary",
+    "exponential",
+    "jitter",
+    "randomized",
+  ],
+};
+
+function causalSignals(value: string) {
+  const normalized = value.toLowerCase();
+  return new Set(
+    Object.entries(causalSignalFamilies)
+      .filter(([, patterns]) => patterns.some((pattern) => normalized.includes(pattern)))
+      .map(([signal]) => signal),
+  );
+}
 
 function terms(value: string) {
   const normalize = (term: string) => {
@@ -58,27 +118,53 @@ function memoryText(memory: RecalledMemory) {
   return [memory.text, memory.context, ...memory.entities].join(" ");
 }
 
+export function evidenceTraceForScenario(
+  scenario: ChangeScenario,
+  memories: RecalledMemory[],
+) {
+  const scenarioValue = scenarioText(scenario);
+  const scenarioTerms = terms(scenarioValue);
+  const scenarioSignals = causalSignals(scenarioValue);
+  const matchedSignals = new Set<string>();
+
+  const relevantMemories = memories.filter((memory) => {
+    const memoryValue = memoryText(memory);
+    const memoryMatches: string[] = [];
+    const signalMatches = [...causalSignals(memoryValue)].filter((signal) => scenarioSignals.has(signal));
+
+    for (const term of terms(memoryValue)) {
+      if (scenarioTerms.has(term)) memoryMatches.push(term);
+    }
+
+    if (memoryMatches.length >= 2 || signalMatches.length >= 2) {
+      signalMatches.forEach((signal) => matchedSignals.add(signal));
+      if (signalMatches.length < 2) {
+        memoryMatches.forEach((term) => matchedSignals.add(term));
+      }
+      return true;
+    }
+
+    return false;
+  });
+
+  return {
+    relevantMemories,
+    matchedSignals: [...matchedSignals].sort().slice(0, 12),
+  };
+}
+
 export function relevantMemoriesForScenario(
   scenario: ChangeScenario,
   memories: RecalledMemory[],
 ) {
-  const scenarioTerms = terms(scenarioText(scenario));
-
-  return memories.filter((memory) => {
-    let overlap = 0;
-    for (const term of terms(memoryText(memory))) {
-      if (scenarioTerms.has(term)) overlap += 1;
-      if (overlap >= 2) return true;
-    }
-    return false;
-  });
+  return evidenceTraceForScenario(scenario, memories).relevantMemories;
 }
 
 export function deterministicAnalysis(
   scenario: ChangeScenario,
   memories: RecalledMemory[],
 ): RiskAnalysis {
-  const relevantMemories = relevantMemoriesForScenario(scenario, memories);
+  const { relevantMemories, matchedSignals } = evidenceTraceForScenario(scenario, memories);
   const hasRelevantMemory = relevantMemories.length > 0;
   const guidedRecurrence = scenario.id === "notification-retry-recurrence";
 
@@ -101,7 +187,9 @@ export function deterministicAnalysis(
         "Keep rollback controls ready",
       ],
       citedMemoryIds: [],
-      analysisMode: "deterministic",
+      decisionBasis: memories.length ? "insufficient-evidence" : "empty-memory",
+      matchedSignals: [],
+      analysisMode: "evidence-policy",
     };
   }
 
@@ -135,7 +223,9 @@ export function deterministicAnalysis(
           "Use a staged rollout and monitor the cited failure signals",
         ],
     citedMemoryIds: relevantMemories.map((memory) => memory.id),
-    analysisMode: "deterministic",
+    decisionBasis: "causal-evidence",
+    matchedSignals,
+    analysisMode: "evidence-policy",
   };
 }
 

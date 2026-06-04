@@ -31,6 +31,8 @@ type AnalysisResponse = {
   integration: IntegrationStatus;
 };
 
+type ProofTiming = Partial<Record<"start" | "before" | "retain" | "after", number>>;
+
 const initialChallenge = scenarios["notification-retry-recurrence"];
 
 function fingerprint(value: unknown) {
@@ -43,6 +45,10 @@ function fingerprint(value: unknown) {
   }
 
   return `SCAR-${(hash >>> 0).toString(16).toUpperCase().padStart(8, "0")}`;
+}
+
+function formatDuration(duration: number) {
+  return duration < 100 ? "<0.1s" : `${(duration / 1_000).toFixed(1)}s`;
 }
 
 export function ProofLab() {
@@ -62,6 +68,7 @@ export function ProofLab() {
   const [after, setAfter] = useState<AnalysisResponse | null>(null);
   const [busy, setBusy] = useState<"start" | "before" | "retain" | "after" | "">("");
   const [error, setError] = useState("");
+  const [timings, setTimings] = useState<ProofTiming>({});
 
   const challenge = useMemo<ChangeScenario>(() => {
     const diffLines = diff
@@ -113,16 +120,42 @@ export function ProofLab() {
   const falsePositiveRejected =
     before?.analysis.verdict === "APPROVE" &&
     after?.analysis.verdict === "APPROVE" &&
-    Boolean(after.memories.length);
+    Boolean(retained);
   const proofOutcomeConfirmed = verdictChanged || falsePositiveRejected;
-  const evidence = after?.memories ?? retained?.evidence ?? [];
+  const evidence = after?.memories.length ? after.memories : retained?.evidence ?? [];
+  const activeAnalysis = after?.analysis ?? before?.analysis;
+
+  function loadPreset(preset: "relevant" | "negative") {
+    setService("report-worker");
+    setChangeTitle("Drain reporting backlog faster");
+    setChangeDescription(
+      "Replace randomized backoff with fixed one-second retries and increase concurrency from 20 to 800.",
+    );
+    setDiff("- backoff: randomized(20, 90)\n- concurrency: 20\n+ backoff: fixed(1)\n+ concurrency: 800");
+
+    if (preset === "relevant") {
+      setRootCause(incidentRecord.rootCause);
+      setResolution(incidentRecord.resolution);
+    } else {
+      setRootCause("A missing design token caused low contrast in a settings button.");
+      setResolution("The team restored the design token and added a visual regression test.");
+    }
+
+    setBefore(null);
+    setRetained(null);
+    setAfter(null);
+    setTimings({});
+    setError("");
+  }
 
   async function startProof() {
+    const startedAt = performance.now();
     setBusy("start");
     setError("");
     setBefore(null);
     setRetained(null);
     setAfter(null);
+    setTimings({});
 
     try {
       const response = await fetch("/api/demo/start", { method: "POST" });
@@ -132,6 +165,7 @@ export function ProofLab() {
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not start proof lab.");
     } finally {
+      setTimings((current) => ({ ...current, start: performance.now() - startedAt }));
       setBusy("");
     }
   }
@@ -155,6 +189,7 @@ export function ProofLab() {
   }
 
   async function runBefore() {
+    const startedAt = performance.now();
     setBusy("before");
     setError("");
     try {
@@ -164,12 +199,14 @@ export function ProofLab() {
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Cold-start analysis failed.");
     } finally {
+      setTimings((current) => ({ ...current, before: performance.now() - startedAt }));
       setBusy("");
     }
   }
 
   async function teachCorrection() {
     if (!session || !before) return;
+    const startedAt = performance.now();
     setBusy("retain");
     setError("");
     try {
@@ -188,11 +225,13 @@ export function ProofLab() {
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Retain operation failed.");
     } finally {
+      setTimings((current) => ({ ...current, retain: performance.now() - startedAt }));
       setBusy("");
     }
   }
 
   async function runAfter() {
+    const startedAt = performance.now();
     setBusy("after");
     setError("");
     try {
@@ -200,6 +239,7 @@ export function ProofLab() {
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Post-memory analysis failed.");
     } finally {
+      setTimings((current) => ({ ...current, after: performance.now() - startedAt }));
       setBusy("");
     }
   }
@@ -233,6 +273,26 @@ export function ProofLab() {
 
       {error ? <div className="error-banner"><TriangleAlert size={16} />{error}</div> : null}
 
+      <div className="proof-protocol">
+        <div><strong>01</strong><span>Fresh isolated bank</span></div>
+        <div><strong>02</strong><span>Identical locked input</span></div>
+        <div><strong>03</strong><span>Real memory IDs required</span></div>
+        <div><strong>04</strong><span>Unrelated memory stays safe</span></div>
+      </div>
+
+      <div className="proof-presets">
+        <div>
+          <span>JUDGE TEST PRESETS</span>
+          <p>Pick either test, then edit any field before the first analysis.</p>
+        </div>
+        <button onClick={() => loadPreset("relevant")} disabled={challengeLocked || correctionLocked || Boolean(busy)}>
+          <ShieldCheck size={14} /> Relevant recurrence: must BLOCK
+        </button>
+        <button onClick={() => loadPreset("negative")} disabled={challengeLocked || correctionLocked || Boolean(busy)}>
+          <Check size={14} /> Negative control: must APPROVE
+        </button>
+      </div>
+
       <div className="proof-input-grid">
         <article className="proof-input-card">
           <div className="proof-card-label"><BrainCircuit size={14} /> UNSEEN DEPLOYMENT CHALLENGE</div>
@@ -265,6 +325,7 @@ export function ProofLab() {
           detail="Must return zero evidence"
           disabled={!session || Boolean(busy)}
           busy={busy === "before"}
+          duration={timings.before}
           onClick={runBefore}
         />
         <ArrowRight size={16} />
@@ -274,6 +335,7 @@ export function ProofLab() {
           detail="Stores judge-authored lesson"
           disabled={!before || Boolean(busy)}
           busy={busy === "retain"}
+          duration={timings.retain}
           onClick={teachCorrection}
         />
         <ArrowRight size={16} />
@@ -283,6 +345,7 @@ export function ProofLab() {
           detail="Must cite retained evidence"
           disabled={!retained || Boolean(busy)}
           busy={busy === "after"}
+          duration={timings.after}
           onClick={runAfter}
         />
       </div>
@@ -296,6 +359,27 @@ export function ProofLab() {
           <code>{challengeFingerprint}</code>
         </div>
         <ProofVerdict title="After memory" analysis={after?.analysis} evidenceCount={after?.memories.length ?? 0} />
+      </div>
+
+      <div className={`proof-decision-gate ${activeAnalysis?.decisionBasis ?? ""}`}>
+        <div>
+          <span>HINDSIGHT EVIDENCE GATE</span>
+          <strong>
+            {activeAnalysis?.decisionBasis === "causal-evidence"
+              ? "BLOCK allowed: relevant evidence verified"
+              : activeAnalysis?.decisionBasis === "insufficient-evidence"
+                ? "BLOCK rejected: recalled memory is unrelated"
+                : activeAnalysis
+                  ? "BLOCK rejected: no memory exists"
+                  : "Awaiting before/after proof"}
+          </strong>
+        </div>
+        <div className="signal-list">
+          {activeAnalysis?.matchedSignals.length
+            ? activeAnalysis.matchedSignals.map((signal) => <code key={signal}>{signal}</code>)
+            : <code>no matched causal signals</code>}
+        </div>
+        <small>{activeAnalysis?.citedMemoryIds.length ?? 0} recalled memory IDs passed the citation gate</small>
       </div>
 
       <div className="proof-evidence">
@@ -325,6 +409,7 @@ function ProofAction({
   detail,
   disabled,
   busy,
+  duration,
   onClick,
 }: {
   number: string;
@@ -332,12 +417,13 @@ function ProofAction({
   detail: string;
   disabled: boolean;
   busy: boolean;
+  duration?: number;
   onClick: () => void;
 }) {
   return (
     <button onClick={onClick} disabled={disabled}>
       <span>{busy ? <LoaderCircle className="spin" size={15} /> : number}</span>
-      <div><strong>{label}</strong><small>{detail}</small></div>
+      <div><strong>{label}</strong><small>{duration ? `${detail} · ${formatDuration(duration)}` : detail}</small></div>
     </button>
   );
 }
@@ -356,6 +442,7 @@ function ProofVerdict({
       <span>{title}</span>
       <strong>{analysis?.verdict ?? "NOT RUN"}</strong>
       <small>{analysis ? `${analysis.riskScore}% risk · ${evidenceCount} memories cited` : "Awaiting analysis"}</small>
+      {analysis ? <code>{analysis.analysisMode === "groq" ? "Groq + evidence gate" : "Hindsight evidence policy"}</code> : null}
     </article>
   );
 }

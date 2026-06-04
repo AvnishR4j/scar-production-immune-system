@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     memories,
     integration: {
       hindsight: memoryMode === "hindsight-cloud" ? "connected" : "demo-fallback",
-      groq: groqConfigured() ? "connected" : "deterministic",
+      groq: groqConfigured() ? "connected" : "evidence-policy",
     },
   });
 }

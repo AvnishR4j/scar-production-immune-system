@@ -27,6 +27,8 @@ The status badge only changes to **Verified Memory** after all retain and recall
 
 SCAR also rejects false learning: retaining an unrelated judge-authored lesson does not block the deployment. The Proof Lab learns only from the visible root cause and resolution fields, a verdict can change only when recalled evidence has causal overlap with the proposed change, and every model-generated `BLOCK` decision must cite an ID that was actually returned by memory recall.
 
+The judge-facing **Hindsight Evidence Gate** exposes the decision basis, matched causal signals, cited memory IDs, and operation timings. It recognizes paraphrased mechanisms such as “thundering herd saturated database sessions” without requiring copied keywords, while the negative-control preset proves unrelated retained memory cannot trigger a block.
+
 ## Why Memory Changes the Decision
 
 Traditional postmortems preserve what happened as documents. SCAR uses Hindsight to make those lessons change future decisions.
@@ -75,7 +77,7 @@ flowchart LR
 The interface always displays the active integration mode:
 
 - **Hindsight Cloud + Groq:** real persistent-memory operations and model-based risk reasoning when credentials are configured.
-- **Deterministic demo mode:** preserves the complete guided flow when external providers are unavailable and is clearly labeled in the dashboard.
+- **Evidence-policy fallback:** preserves the complete guided flow when external providers are unavailable while enforcing the same causal-overlap and verified-citation gates.
 
 The public deployment can be evaluated without credentials, but it will explicitly show **Simulation Mode**. For a verified Hindsight-backed run, configure the server-side environment variables below and redeploy.
 
@@ -89,7 +91,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-The app works immediately in deterministic demo mode. Add Hindsight Cloud and Groq credentials to `.env.local` to enable the live integrations:
+The app works immediately with the local evidence-policy fallback. Add Hindsight Cloud and Groq credentials to `.env.local` to enable the live integrations:
 
 ```bash
 HINDSIGHT_BASE_URL=https://your-hindsight-api
@@ -159,7 +161,7 @@ npm audit
 - Hindsight URLs must use HTTPS outside local development.
 - The dashboard labels fallback integration states when credentials or providers are unavailable.
 
-Current verification: `14` automated tests passing and `0` dependency vulnerabilities reported by `npm audit`.
+Current verification: `17` automated tests passing and `0` dependency vulnerabilities reported by `npm audit`.
 
 ## Official Hindsight Resources
 

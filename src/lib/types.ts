@@ -40,7 +40,9 @@ export type RiskAnalysis = {
   causalChain: string[];
   recommendations: string[];
   citedMemoryIds: string[];
-  analysisMode: "groq" | "deterministic";
+  decisionBasis: "empty-memory" | "causal-evidence" | "insufficient-evidence";
+  matchedSignals: string[];
+  analysisMode: "groq" | "evidence-policy";
 };
 
 export type IncidentRecord = {
@@ -71,5 +73,5 @@ export type DemoSession = {
 
 export type IntegrationStatus = {
   hindsight: "connected" | "demo-fallback";
-  groq: "connected" | "deterministic";
+  groq: "connected" | "evidence-policy";
 };

@@ -749,6 +749,56 @@ h1 span {
   line-height: 1.56;
 }
 
+.decision-gate {
+  display: grid;
+  gap: 8px;
+  margin: 0 14px 15px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-2);
+}
+
+.decision-gate.causal-evidence {
+  border-color: rgba(189, 168, 255, 0.36);
+  background: rgba(189, 168, 255, 0.06);
+}
+
+.decision-gate > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.decision-gate span,
+.decision-gate small {
+  color: var(--muted);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.decision-gate strong {
+  color: var(--muted-bright);
+  font-size: 0.64rem;
+}
+
+.signal-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.signal-list code {
+  padding: 3px 6px;
+  border: 1px solid rgba(189, 168, 255, 0.24);
+  border-radius: 99px;
+  background: rgba(189, 168, 255, 0.06);
+  color: var(--purple);
+  font-size: 0.55rem;
+}
+
 .section-label {
   display: flex;
   gap: 6px;
@@ -1137,6 +1187,76 @@ h1 span {
   margin: 12px 18px 0;
 }
 
+.proof-protocol {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+
+.proof-protocol > div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 9px 18px;
+  border-right: 1px solid var(--border);
+}
+
+.proof-protocol > div:last-child {
+  border-right: 0;
+}
+
+.proof-protocol strong {
+  color: var(--green);
+  font-family: "Geist Mono", monospace;
+  font-size: 0.58rem;
+}
+
+.proof-protocol span {
+  color: var(--muted-bright);
+  font-size: 0.61rem;
+  font-weight: 700;
+}
+
+.proof-presets {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 9px;
+  align-items: center;
+  padding: 12px 18px 0;
+}
+
+.proof-presets span {
+  color: var(--purple);
+  font-size: 0.58rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
+}
+
+.proof-presets p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 0.62rem;
+}
+
+.proof-presets button {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid rgba(189, 168, 255, 0.28);
+  border-radius: 7px;
+  background: rgba(189, 168, 255, 0.06);
+  color: var(--purple);
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-weight: 750;
+}
+
+.proof-presets button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
 .proof-input-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1349,6 +1469,12 @@ h1 span {
   font-size: 0.62rem;
 }
 
+.proof-verdict > code {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.52rem;
+}
+
 .proof-verdict.approve {
   border-color: rgba(125, 255, 178, 0.3);
   color: var(--green);
@@ -1377,6 +1503,44 @@ h1 span {
 .proof-delta code {
   color: var(--purple);
   font-size: 0.55rem;
+}
+
+.proof-decision-gate {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 1.5fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(189, 168, 255, 0.035);
+}
+
+.proof-decision-gate.causal-evidence {
+  background: rgba(189, 168, 255, 0.075);
+}
+
+.proof-decision-gate > div:first-child span,
+.proof-decision-gate > div:first-child strong {
+  display: block;
+}
+
+.proof-decision-gate > div:first-child span {
+  color: var(--purple);
+  font-size: 0.57rem;
+  font-weight: 850;
+  letter-spacing: 0.1em;
+}
+
+.proof-decision-gate > div:first-child strong {
+  margin-top: 4px;
+  color: var(--muted-bright);
+  font-size: 0.66rem;
+}
+
+.proof-decision-gate small {
+  color: var(--muted);
+  font-size: 0.58rem;
+  text-align: right;
 }
 
 .proof-evidence {
@@ -1547,7 +1711,9 @@ footer strong {
   .proof-lab-header,
   .proof-input-grid,
   .proof-results,
-  .proof-evidence-grid {
+  .proof-evidence-grid,
+  .proof-presets,
+  .proof-decision-gate {
     grid-template-columns: 1fr;
   }
 
@@ -1557,6 +1723,22 @@ footer strong {
 
   .proof-mode {
     min-width: 0;
+  }
+
+  .proof-protocol {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .proof-protocol > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .proof-protocol > div:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .proof-decision-gate small {
+    text-align: left;
   }
 
   .proof-actions {

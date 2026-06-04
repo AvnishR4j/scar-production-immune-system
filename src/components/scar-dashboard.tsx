@@ -288,9 +288,9 @@ export function ScarDashboard() {
             label={memoryMode === "hindsight-cloud" ? "Hindsight Cloud" : "Hindsight demo mode"}
           />
           <StatusPill
-            active={integration?.groq === "connected"}
+            active={Boolean(currentAnalysis)}
             icon={<Zap size={13} />}
-            label={integration?.groq === "connected" ? "Groq reasoning" : "Deterministic reasoning"}
+            label={integration?.groq === "connected" ? "Groq + evidence gate" : "Evidence-grounded policy"}
           />
         </div>
       </header>
@@ -435,7 +435,13 @@ export function ScarDashboard() {
             eyebrow="SCAR risk intelligence"
             title={currentAnalysis?.analysis.headline ?? "Awaiting deployment analysis"}
             icon={<ShieldCheck size={18} />}
-            badge={currentAnalysis?.analysis.analysisMode ?? "ready"}
+            badge={
+              currentAnalysis?.analysis.analysisMode === "groq"
+                ? "groq + evidence gate"
+                : currentAnalysis
+                  ? "hindsight evidence gate"
+                  : "ready"
+            }
           />
 
           {!currentAnalysis ? (
@@ -456,6 +462,24 @@ export function ScarDashboard() {
                 </div>
               </div>
               <p className="analysis-copy">{currentAnalysis.analysis.explanation}</p>
+              <div className={`decision-gate ${currentAnalysis.analysis.decisionBasis}`}>
+                <div>
+                  <span>DECISION EVIDENCE GATE</span>
+                  <strong>
+                    {currentAnalysis.analysis.decisionBasis === "causal-evidence"
+                      ? "Passed: causal evidence cited"
+                      : currentAnalysis.analysis.decisionBasis === "insufficient-evidence"
+                        ? "Held open: recalled evidence is unrelated"
+                        : "Held open: memory bank is empty"}
+                  </strong>
+                </div>
+                <div className="signal-list">
+                  {currentAnalysis.analysis.matchedSignals.length
+                    ? currentAnalysis.analysis.matchedSignals.map((signal) => <code key={signal}>{signal}</code>)
+                    : <code>no causal signals</code>}
+                </div>
+                <small>{currentAnalysis.analysis.citedMemoryIds.length} verified memory IDs cited</small>
+              </div>
               <div className="section-label"><Waypoints size={14} /> Predicted causal chain</div>
               <div className="causal-chain">
                 {currentAnalysis.analysis.causalChain.map((step, index) => (

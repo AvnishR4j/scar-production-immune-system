@@ -56,11 +56,21 @@ export async function analyzeWithGroq(
     const parsed = groqAnalysisSchema.parse(JSON.parse(content));
     const suppliedMemoryIds = new Set(memories.map((memory) => memory.id));
     const citedMemoryIds = parsed.citedMemoryIds.filter((id) => suppliedMemoryIds.has(id));
-    if (parsed.verdict === "BLOCK" && citedMemoryIds.length === 0) return fallback;
+    if (parsed.verdict === "APPROVE" && fallback.decisionBasis === "causal-evidence") {
+      return fallback;
+    }
+    if (
+      parsed.verdict === "BLOCK" &&
+      (citedMemoryIds.length === 0 || fallback.decisionBasis !== "causal-evidence")
+    ) {
+      return fallback;
+    }
 
     return {
       ...parsed,
       citedMemoryIds,
+      decisionBasis: fallback.decisionBasis,
+      matchedSignals: fallback.matchedSignals,
       analysisMode: "groq",
     };
   } catch {

@@ -21,6 +21,8 @@ describe("SCAR deterministic risk engine", () => {
     expect(analysis.verdict).toBe("APPROVE");
     expect(analysis.citedMemoryIds).toHaveLength(0);
     expect(analysis.riskScore).toBeLessThan(50);
+    expect(analysis.decisionBasis).toBe("empty-memory");
+    expect(analysis.analysisMode).toBe("evidence-policy");
   });
 
   it("blocks the unrelated recurrence after the incident is learned", () => {
@@ -33,6 +35,8 @@ describe("SCAR deterministic risk engine", () => {
     expect(analysis.citedMemoryIds).toHaveLength(fallbackEvidence.length);
     expect(analysis.riskScore).toBeGreaterThan(90);
     expect(analysis.explanation).toContain("different service");
+    expect(analysis.decisionBasis).toBe("causal-evidence");
+    expect(analysis.matchedSignals).toContain("retry synchronization");
   });
 
   it("does not fabricate memories before the corrective event", () => {
@@ -68,6 +72,7 @@ describe("SCAR deterministic risk engine", () => {
     expect(analysis.verdict).toBe("APPROVE");
     expect(analysis.citedMemoryIds).toHaveLength(0);
     expect(analysis.explanation).toContain("none share enough causal evidence");
+    expect(analysis.decisionBasis).toBe("insufficient-evidence");
   });
 
   it("ignores an unrelated judge-authored incident end to end", () => {
@@ -87,5 +92,26 @@ describe("SCAR deterministic risk engine", () => {
 
     expect(analysis.verdict).toBe("APPROVE");
     expect(analysis.citedMemoryIds).toHaveLength(0);
+  });
+
+  it("recognizes a causally equivalent paraphrase without copied wording", () => {
+    const paraphrasedMemory = {
+      ...fallbackEvidence[0],
+      id: "memory-paraphrased-recurrence",
+      text: "Periodic attempts formed a thundering herd that saturated shared database sessions.",
+      context: "Confirmed outage mechanism",
+      entities: ["periodic attempts", "thundering herd", "database capacity"],
+    };
+
+    const analysis = deterministicAnalysis(
+      scenarios["notification-retry-recurrence"],
+      [paraphrasedMemory],
+    );
+
+    expect(analysis.verdict).toBe("BLOCK");
+    expect(analysis.decisionBasis).toBe("causal-evidence");
+    expect(analysis.matchedSignals).toContain("retry synchronization");
+    expect(analysis.matchedSignals).toContain("resource exhaustion");
+    expect(analysis.citedMemoryIds).toEqual([paraphrasedMemory.id]);
   });
 });
